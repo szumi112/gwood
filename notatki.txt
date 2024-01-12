@@ -1,0 +1,16 @@
+done:
+- add a loading skeleton 👍
+- add filters 👍
+- add padding to the table for mobile devices 👍
+- add date format ( or even a calendar input ) 👍
+- change zip code to postcode 👍
+- reset filters button +
+- add 'other' to dropdowns +
+- allow copy/paste for all fields  turn date to their format 
+- unfinished/finished quotes
+- align filters properly
+- add pagination
+
+todo:
+
+- add email called 'Bugs/complaints about the website email: mateusz'

@@ -1,0 +1,82 @@
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+services:
+  - name: docker:20-dind
+    alias: docker
+    command: [ "--tls=false" ]
+
+stages:
+  - build
+  - deploy
+
+### Build dev ###
+build-dev:
+  image: docker:20-dind
+  variables:
+    APP_NAME: "kcharles-metaplast-app"
+    BUILD_ENV_NAME: "development"
+    PORT: 3400
+  stage: build
+  before_script:
+    # - docker info
+    - docker login "$REGISTRY_ADDR" -u "$REGISTRY_USER" -p "$REGISTRY_TOKEN"
+    - TAG_BRANCH="develop"
+    - REGISTRY_IMAGE="${REGISTRY_ADDR}${REGISTRY_REPO}"$TAG_BRANCH
+  script:
+    - docker build -t "$REGISTRY_IMAGE" .
+    - docker push "$REGISTRY_IMAGE"
+  only:
+    - develop
+    - ci/improve-deployment
+### Build dev END ###
+
+### Build production ###
+build-production:
+  image: docker:20-dind
+  variables:
+    APP_NAME: "kcharles-metaplast-app"
+    BUILD_ENV_NAME: "production"
+    PORT: 3400
+  stage: build
+  before_script:
+    # - docker info
+    - docker login "$REGISTRY_ADDR" -u "$REGISTRY_USER" -p "$REGISTRY_TOKEN"
+    - TAG_BRANCH="main"
+    - REGISTRY_IMAGE="${REGISTRY_ADDR}${REGISTRY_REPO}"$TAG_BRANCH
+  script:
+    - docker build -t "$REGISTRY_IMAGE" .
+    - docker push "$REGISTRY_IMAGE"
+  only:
+    - main
+    - ci/improve-deployment
+### Build dev END ###
+
+### Deploy production ###
+deploy-production:
+  stage: deploy
+  before_script:
+    - apt update && apt-get install -y git zip
+    - 'which ssh-agent || (apk add openssh-client)'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\tServerAliveInterval 1800\n\tServerAliveCountMax 20\n\n" > ~/.ssh/config'
+    - cat ~/.ssh/config
+  script:
+    - ssh $PRODUCTION_SSH_USER@$PRODUCTION_SSH_HOST "
+      cd /var/www/production/kcharles/metaplast
+      && docker-compose stop
+      && docker-compose rm -f
+      && docker-compose pull
+      && docker-compose up -d
+      "
+    # end of laravel deploy
+
+  only:
+    - main
+    - ci/improve-deployment
+### Deploy dev END ###

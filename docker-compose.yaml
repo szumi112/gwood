@@ -1,0 +1,17 @@
+version: '3.3'
+networks:
+  frontend-apps:
+    driver: bridge
+
+services:
+  cargoking-landing-app:
+    image: registry.vegking.com/kcharles/metaplast/${BRANCH_NAME}:latest
+    restart: unless-stopped
+    networks:
+      - frontend-apps
+    ports:
+      - "3400:3400"
+    expose:
+      - "3400"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
