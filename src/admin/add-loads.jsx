@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { Box, Button, Grid, Input, Select, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Grid,
+  Input,
+  Select,
+  Text,
+  useColorMode,
+} from "@chakra-ui/react";
 import { useLoadContext } from "../load-context";
 
 const AddLoadForm = () => {
+  const { colorMode } = useColorMode();
   const { addLoad } = useLoadContext();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,7 +79,13 @@ const AddLoadForm = () => {
 
   return (
     <>
-      <Button onClick={toggleFormVisibility} mb={8} mx={4}>
+      <Button
+        onClick={toggleFormVisibility}
+        mb={8}
+        mx={4}
+        colorScheme="red"
+        bg={colorMode === "dark" ? "red.400" : "red.400"}
+      >
         {isFormVisible ? "Hide Add a load" : "Add a load"}
       </Button>
 
