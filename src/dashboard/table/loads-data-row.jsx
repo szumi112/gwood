@@ -210,114 +210,53 @@ const LoadDataRow = ({
           </Flex>
         )}
       </Td>
-      <Td borderBottomColor={borderBottomColor} data-label="Collection date">
-        {renderField("collection_date", true, "Collection date")}
+      <Td borderBottomColor={borderBottomColor} data-label="Ref No">
+        {renderField("ref_no", true, "Ref no")}
       </Td>
-      <Td borderBottomColor={borderBottomColor} data-label="Collection time">
-        {renderField("collection_time", true, "Collection time")}
+      <Td borderBottomColor={borderBottomColor} data-label="Truck#">
+        {renderField("truck_number", true, "Truck#")}
       </Td>
-      <Td
-        data-label="Collection ETA"
-        borderBottomColor={borderBottomColor}
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("collection_eta", true, "Collection ETA")}
+      <Td borderBottomColor={borderBottomColor} data-label="Truck Reg">
+        {renderField("truck_reg", true, "Truck Reg")}
       </Td>
-      <Td borderBottomColor={borderBottomColor} data-label="Collection company">
-        {renderField("collection_company", true, "Collection company")}
+      <Td borderBottomColor={borderBottomColor} data-label="Loading date">
+        {renderField("collection_date", true, "Loading date")}
       </Td>
-      <Td borderBottomColor={borderBottomColor} data-label="Postcode">
-        {renderField("collection_zip_code", true, "Collection postcode")}
+      <Td borderBottomColor={borderBottomColor} data-label="Time">
+        {renderField("collection_time", true, "Time")}
       </Td>
-      <Td borderBottomColor={borderBottomColor} data-label="MP PO">
-        {renderField("ref_mp_po", true, "MP PO")}
+      <Td borderBottomColor={borderBottomColor} data-label="Delivery Date">
+        {renderField("delivery_date", true, "Delivery Date")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="REF"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("ref_ref", true, "REF")}
+      <Td borderBottomColor={borderBottomColor} data-label="Time">
+        {renderField("delivery_time", true, "Time")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Vehicle type"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("vehicle_type", true, "Vehicle type")}
+      <Td borderBottomColor={borderBottomColor} data-label="Collection Ref">
+        {renderField("collection_ref", true, "Collection Ref")}
       </Td>
-
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Delivery date"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("delivery_date", true, "Delivery date")}
+      <Td borderBottomColor={borderBottomColor} data-label="Pallet count">
+        {renderField("pallet_count", true, "Pallet count")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Delivery time"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("delivery_time", true, "Delivery time")}
+      <Td borderBottomColor={borderBottomColor} data-label="Temp">
+        {renderField("temp", true, "Temp")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Delivery ETA"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("delivery_eta", true, "Delivery ETA")}
+      <Td borderBottomColor={borderBottomColor} data-label="Phyto">
+        {renderField("phyto", true, "Phyto")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Delivery company"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("delivery_company", true, "Delivery company")}
+      <Td borderBottomColor={borderBottomColor} data-label="Export">
+        {renderField("export", true, "Export")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Postcode"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("delivery_zip_code", true, "Delivery postcode")}
+      <Td borderBottomColor={borderBottomColor} data-label="Import">
+        {renderField("import", true, "Import")}
       </Td>
-      <Td
-        borderBottomColor={borderBottomColor}
-        data-label="Delivery PO"
-        display={{
-          base: isExpanded ? "auto" : "none",
-          "1100px": "table-cell",
-        }}
-      >
-        {renderField("delivery_po", true, "Delivery PO")}
+      <Td borderBottomColor={borderBottomColor} data-label="Crossing port">
+        {renderField("crossing_port", true, "Crossing port")}
+      </Td>
+      <Td borderBottomColor={borderBottomColor} data-label="Company name">
+        {renderField("company_name", true, "Company name")}
       </Td>
 
-      <Td borderBottomColor={borderBottomColor} data-label="Rate">
+      {/* <Td borderBottomColor={borderBottomColor} data-label="Rate">
         {isEditing ? (
           <Flex flexDir={{ base: "column" }}>
             <Input
@@ -338,12 +277,12 @@ const LoadDataRow = ({
         ) : (
           <>
             {" "}
-            {editedFormData?.rate.includes(".")
+            {editedFormData?.rate?.includes(".")
               ? editedFormData?.rate
               : `${editedFormData?.rate}.00`}
           </>
         )}
-      </Td>
+      </Td> */}
 
       <Td
         borderBottomColor={borderBottomColor}
@@ -447,7 +386,7 @@ const LoadDataRow = ({
           load={load}
         />
       </Td>
-      <Td
+      {/* <Td
         display={{ base: "flex", "1100px": "none" }}
         width="100%"
         mt={{ base: 4, lg: 0 }}
@@ -476,7 +415,7 @@ const LoadDataRow = ({
             )}
           </Button>
         </Flex>
-      </Td>
+      </Td> */}
     </Tr>
   );
 };

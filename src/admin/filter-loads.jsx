@@ -16,7 +16,7 @@ function FilterComponent({ applyFilters }) {
   const [companyFilter, setCompanyFilter] = useState("");
   const [reference, setReference] = useState("");
   const [status, setStatus] = useState("");
-  const [statusDescription, setStatusDescription] = useState("");
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -52,12 +52,6 @@ function FilterComponent({ applyFilters }) {
     applyFilters(startDate);
   };
 
-  const handleStatusDescriptionChange = (e) => {
-    const newValue = e.target.value.toLowerCase();
-    setStatusDescription(newValue);
-    applyFilters(newValue);
-  };
-
   const handleLoadStatusChange = (e) => {
     const newValue = e.target.value;
     setLoadStatusFilter(newValue);
@@ -75,24 +69,16 @@ function FilterComponent({ applyFilters }) {
       status,
       startDate,
       endDate,
-      statusDescription,
+
       loadStatusFilter
     );
-  }, [
-    companyFilter,
-    reference,
-    status,
-    startDate,
-    endDate,
-    statusDescription,
-    loadStatusFilter,
-  ]);
+  }, [companyFilter, reference, status, startDate, endDate, loadStatusFilter]);
 
   const resetFilters = () => {
     setCompanyFilter("");
     setReference("");
     setStatus("");
-    setStatusDescription("");
+
     setStartDate("");
     setEndDate("");
     setLoadStatusFilter("All");
@@ -100,9 +86,9 @@ function FilterComponent({ applyFilters }) {
 
   return (
     <>
-      <Button onClick={toggleFilters} mb={2} mx={4}>
+      {/* <Button onClick={toggleFilters} mb={2} mx={4}>
         {showFilters ? "Hide Filters" : "Show Filters"}
-      </Button>
+      </Button> */}
 
       <Box
         mt={4}
@@ -159,16 +145,6 @@ function FilterComponent({ applyFilters }) {
                     <option value="3">3</option>
                     <option value="4">4</option>
                   </Select>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Status Description</FormLabel>
-                  <Input
-                    type="text"
-                    placeholder="Status Description"
-                    value={statusDescription}
-                    onChange={handleStatusDescriptionChange}
-                  />
                 </FormControl>
 
                 <FormControl mr={2}>

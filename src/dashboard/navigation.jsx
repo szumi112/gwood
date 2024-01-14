@@ -175,7 +175,7 @@ const Navigation = () => {
       >
         {!isAdminRoute ? (
           <Text fontSize={"32px"} fontWeight="bold" my={{ base: 2, md: 0 }}>
-            Metaplast Dashboard
+            Rumwood Green Dashboard
           </Text>
         ) : (
           <Text fontSize={"32px"} fontWeight="bold">

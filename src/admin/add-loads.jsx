@@ -7,21 +7,22 @@ const AddLoadForm = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({
     status: "",
-    status_description: "",
-    collection_eta: "",
-    collection_company: "",
-    collection_zip_code: "",
-    ref_mp_po: "",
-    ref_ref: "",
+    ref_no: "",
+    truck_number: "",
+    truck_reg: "",
     collection_date: "",
-    collection_time: "",
-    delivery_eta: "",
-    delivery_company: "",
-    delivery_zip_code: "",
+    loading_time: "",
     delivery_date: "",
     delivery_time: "",
-    vehicle_type: "",
-    rate: "",
+    collection_ref: "",
+    pallet_count: "",
+    temp: "",
+    phyto: "",
+    export: "",
+    import: "",
+    crossing_port: "",
+    company_name: "",
+    notes: "",
   });
 
   const handleChange = (field, value) => {
@@ -35,8 +36,8 @@ const AddLoadForm = () => {
     try {
       const formattedData = {
         ...formData,
-        collection_date: formData.collection_date,
-        delivery_date: formData.delivery_date,
+        // collection_date: formData.collection_date,
+        // delivery_date: formData.delivery_date,
       };
       addLoad(formattedData);
     } catch (error) {
@@ -44,21 +45,22 @@ const AddLoadForm = () => {
     }
     setFormData({
       status: "",
-      status_description: "",
-      collection_eta: "",
-      collection_company: "",
-      collection_zip_code: "",
-      ref_mp_po: "",
-      ref_ref: "",
+      ref_no: "",
+      truck_number: "",
+      truck_reg: "",
       collection_date: "",
       collection_time: "",
-      delivery_eta: "",
-      delivery_company: "",
-      delivery_zip_code: "",
       delivery_date: "",
       delivery_time: "",
-      vehicle_type: "",
-      rate: "",
+      collection_ref: "",
+      pallet_count: "",
+      temp: "",
+      phyto: "",
+      export: "",
+      import: "",
+      crossing_port: "",
+      company_name: "",
+      notes: "",
     });
   };
 
@@ -82,9 +84,7 @@ const AddLoadForm = () => {
       >
         {isFormVisible && (
           <>
-            <Text fontSize="24px" mb={4} fontWeight={"500"}>
-              Collection:
-            </Text>
+            <Text fontSize="24px" mb={4} fontWeight={"500"}></Text>
             <Grid
               templateColumns={{
                 base: "repeat(1, 1fr)",
@@ -98,43 +98,30 @@ const AddLoadForm = () => {
               <Input
                 size="md"
                 type="text"
-                placeholder="Collection Company"
-                value={formData?.collection_company}
-                onChange={(e) =>
-                  handleChange("collection_company", e.target.value)
-                }
+                placeholder="ref_no"
+                value={formData?.ref_no}
+                onChange={(e) => handleChange("ref_no", e.target.value)}
+              />
+              <Input
+                size="md"
+                type="text"
+                placeholder="truck_number"
+                value={formData?.truck_number}
+                onChange={(e) => handleChange("truck_number", e.target.value)}
               />
 
               <Input
                 size="md"
                 type="text"
-                placeholder="Collection postcode"
-                value={formData?.collection_zip_code}
-                onChange={(e) =>
-                  handleChange("collection_zip_code", e.target.value)
-                }
+                placeholder="truck_reg"
+                value={formData?.truck_reg}
+                onChange={(e) => handleChange("truck_reg", e.target.value)}
               />
 
               <Input
                 size="md"
                 type="text"
-                placeholder="Reference (MP/PO)"
-                value={formData?.ref_mp_po}
-                onChange={(e) => handleChange("ref_mp_po", e.target.value)}
-              />
-
-              <Input
-                size="md"
-                type="text"
-                placeholder="Reference (REF)"
-                value={formData?.ref_ref}
-                onChange={(e) => handleChange("ref_ref", e.target.value)}
-              />
-
-              <Input
-                size="md"
-                type="text"
-                placeholder="Col. Date DD/MM/YYYY"
+                placeholder="loading_date"
                 value={formData?.collection_date}
                 onChange={(e) =>
                   handleChange("collection_date", e.target.value)
@@ -144,81 +131,20 @@ const AddLoadForm = () => {
               <Input
                 size="md"
                 type="text"
-                placeholder="Collection Time"
-                value={formData?.collection_time}
-                onChange={(e) =>
-                  handleChange("collection_time", e.target.value)
-                }
-              />
-            </Grid>
-            <Text fontSize="24px" mb={4} fontWeight={"500"}>
-              Delivery:
-            </Text>
-            <Grid
-              templateColumns={{
-                base: "repeat(1, 1fr)",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(3, 1fr)",
-                lg: "repeat(6, 1fr)",
-              }}
-              gap={6}
-              mb={4}
-            >
-              <Input
-                size="md"
-                type="text"
-                placeholder="Delivery ETA"
-                value={formData?.delivery_eta}
-                onChange={(e) => handleChange("delivery_eta", e.target.value)}
+                placeholder="loading_time"
+                value={formData?.loading_time}
+                onChange={(e) => handleChange("loading_time", e.target.value)}
               />
 
               <Input
                 size="md"
                 type="text"
-                placeholder="Delivery Company"
-                value={formData?.delivery_company}
-                onChange={(e) =>
-                  handleChange("delivery_company", e.target.value)
-                }
-              />
-
-              <Input
-                size="md"
-                type="text"
-                placeholder="Delivery postcode"
-                value={formData?.delivery_zip_code}
-                onChange={(e) =>
-                  handleChange("delivery_zip_code", e.target.value)
-                }
-              />
-
-              <Input
-                size="md"
-                type="text"
-                placeholder="Delivery PO"
-                value={formData?.delivery_po}
-                onChange={(e) => handleChange("delivery_po", e.target.value)}
-              />
-
-              <Input
-                size="md"
-                type="text"
-                placeholder="Del. Date DD/MM/YYYY"
+                placeholder="delivery_date DD/MM/YYYY"
                 value={formData?.delivery_date}
                 onChange={(e) => handleChange("delivery_date", e.target.value)}
               />
-
-              <Input
-                size="md"
-                type="text"
-                placeholder="Delivery Time"
-                value={formData?.delivery_time}
-                onChange={(e) => handleChange("delivery_time", e.target.value)}
-              />
             </Grid>
-            <Text fontSize="24px" mb={4} fontWeight={"500"}>
-              Other:
-            </Text>
+            <Text fontSize="24px" mb={4} fontWeight={"500"}></Text>
             <Grid
               templateColumns={{
                 base: "repeat(1, 1fr)",
@@ -232,18 +158,83 @@ const AddLoadForm = () => {
               <Input
                 size="md"
                 type="text"
-                placeholder="Trailer Type"
-                value={formData?.vehicle_type}
-                onChange={(e) => handleChange("vehicle_type", e.target.value)}
+                placeholder="delivery_time"
+                value={formData?.delivery_time}
+                onChange={(e) => handleChange("delivery_time", e.target.value)}
+              />
+              <Input
+                size="md"
+                type="text"
+                placeholder="collection_ref"
+                value={formData?.collection_ref}
+                onChange={(e) => handleChange("collection_ref", e.target.value)}
               />
 
               <Input
+                size="md"
+                type="text"
+                placeholder="pallet_count"
+                value={formData?.pallet_count}
+                onChange={(e) => handleChange("pallet_count", e.target.value)}
+              />
+
+              <Input
+                size="md"
+                type="text"
+                placeholder="temp"
+                value={formData?.temp}
+                onChange={(e) => handleChange("temp", e.target.value)}
+              />
+
+              <Input
+                size="md"
+                type="text"
+                placeholder="export"
+                value={formData?.export}
+                onChange={(e) => handleChange("export", e.target.value)}
+              />
+
+              <Input
+                size="md"
+                type="text"
+                placeholder="import"
+                value={formData?.import}
+                onChange={(e) => handleChange("import", e.target.value)}
+              />
+            </Grid>
+            <Text fontSize="24px" mb={4} fontWeight={"500"}></Text>
+            <Grid
+              templateColumns={{
+                base: "repeat(1, 1fr)",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(3, 1fr)",
+                lg: "repeat(6, 1fr)",
+              }}
+              gap={6}
+              mb={4}
+            >
+              <Input
+                size="md"
+                type="text"
+                placeholder="company_name"
+                value={formData?.company_name}
+                onChange={(e) => handleChange("company_name", e.target.value)}
+              />
+
+              <Input
+                size="md"
+                type="text"
+                placeholder="crossing_port"
+                value={formData?.crossing_port}
+                onChange={(e) => handleChange("crossing_port", e.target.value)}
+              />
+              {/* <Input
                 size="md"
                 type="text"
                 placeholder="Rate"
                 value={formData?.rate}
                 onChange={(e) => handleChange("rate", e.target.value)}
-              />
+              /> */}
             </Grid>
             <Button onClick={handleAddLoad} mt={8} colorScheme="green">
               Add Load

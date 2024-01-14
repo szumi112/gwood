@@ -170,7 +170,7 @@ const OpenChats = () => {
                       fontSize="14px"
                       onClick={() => openChat(loadId)}
                     >
-                      MP/PO:{" "}
+                      Ref no:
                     </Text>
                     <Text
                       mr={2}
@@ -182,7 +182,7 @@ const OpenChats = () => {
                     >
                       {
                         loads.find((load) => load.id === loadId)?.formData
-                          ?.ref_mp_po
+                          ?.ref_no
                       }
                     </Text>
                   </Flex>

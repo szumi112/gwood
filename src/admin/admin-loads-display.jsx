@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Table,
@@ -14,6 +14,7 @@ import {
   Button,
   Input,
   Flex,
+  Select,
 } from "@chakra-ui/react";
 import {
   startOfWeek,
@@ -31,11 +32,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase-config/firebase-config";
 import DeleteConfirmationModal from "./delete-modal";
-import {
-  getColumnHeaders,
-  ColHeader,
-  DelHeader,
-} from "../utilities/table-headers";
+import { getColumnHeaders } from "../utilities/table-headers";
 import LoadDataRow from "../dashboard/table/loads-data-row";
 import { useLoadContext } from "../load-context";
 import FilterComponent from "./filter-loads";
@@ -43,13 +40,43 @@ import AddLoadForm from "./add-loads";
 
 const AdminLoads = () => {
   const { loads, setLoads } = useLoadContext();
-  const loadsCollectionRef = collection(db, "loads");
   const [loadToDelete, setLoadToDelete] = useState(null);
   const { colorMode } = useColorMode();
   const [isLoading, setIsLoading] = useState(true);
   const [showNoLoadsFound, setShowNoLoadsFound] = useState(false);
   const [filteredLoads, setFilteredLoads] = useState(loads);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedYear, setSelectedYear] = useState(getYear(new Date()));
+  const getWeeksInYear = (year) => {
+    const isLeapYear = new Date(year, 1, 29).getMonth() === 1;
+    return isLeapYear ? 53 : 52;
+  };
+  const [currentPage, setCurrentPage] = useState(() => {
+    const now = new Date();
+    const currentYear = getYear(now);
+    const weekNumber = getWeek(now, { weekStartsOn: 1 });
+    const totalWeeks = getWeeksInYear(currentYear);
+
+    return weekNumber > totalWeeks ? totalWeeks : weekNumber;
+  });
+
+  const firstUpdate = useRef(true);
+
+  useEffect(() => {
+    if (firstUpdate.current) {
+      firstUpdate.current = false;
+      return;
+    }
+
+    const totalWeeks = getWeeksInYear(selectedYear);
+    setTotalNumberOfPages(totalWeeks);
+
+    setCurrentPage(
+      selectedYear === getYear(new Date())
+        ? getWeek(new Date(), { weekStartsOn: 1 })
+        : 1
+    );
+  }, [selectedYear]);
+
   const itemsPerPage = 10;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -58,9 +85,60 @@ const AdminLoads = () => {
   const [deliverySortOrder, setDeliverySortOrder] = useState("desc");
   const [sortedColumn, setSortedColumn] = useState("collection_date");
   const [displayedLoads, setDisplayedLoads] = useState([]);
-  const [currentWeek, setCurrentWeek] = useState(null);
   const [totalNumberOfPages, setTotalNumberOfPages] = useState("52");
   const [inputValue, setInputValue] = useState(currentPage.toString());
+
+  const generateYearOptions = (startYear) => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = startYear; year <= currentYear; year++) {
+      years.push(year);
+    }
+    return years;
+  };
+  const YearSelector = ({ selectedYear, setSelectedYear }) => {
+    const yearOptions = generateYearOptions(2024);
+
+    if (yearOptions.length === 1 && yearOptions[0] === 2024) {
+      return null;
+    }
+
+    return (
+      <Select
+        value={selectedYear}
+        onChange={(e) => setSelectedYear(Number(e.target.value))}
+      >
+        {yearOptions.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </Select>
+    );
+  };
+
+  useEffect(() => {
+    const totalWeeks = getWeeksInYear(selectedYear);
+    setTotalNumberOfPages(totalWeeks);
+
+    const now = new Date();
+    const isCurrentYear = selectedYear === getYear(now);
+    if (isCurrentYear) {
+      setCurrentPage(getWeek(now, { weekStartsOn: 1 }));
+    } else {
+      setCurrentPage(1);
+    }
+  }, [selectedYear]);
+
+  function filterLoadsByWeek(loads, weekNumber, year) {
+    return loads.filter((load) => {
+      const loadDate = parseDate(load.formData.collection_date);
+      return (
+        getWeek(loadDate, { weekStartsOn: 1 }) === weekNumber &&
+        getYear(loadDate) === year
+      );
+    });
+  }
 
   const handleSortByDate = (column) => {
     if (column === sortedColumn) {
@@ -171,11 +249,11 @@ const AdminLoads = () => {
     }
 
     if (statusDescription) {
-      const statusDescriptionLower = statusDescription.toLowerCase();
+      const statusDescriptionLower = statusDescription?.toLowerCase();
       filtered = filtered.filter((load) =>
-        load.formData.status_description
-          .toLowerCase()
-          .includes(statusDescriptionLower)
+        load?.formData?.status_description
+          ?.toLowerCase()
+          ?.includes(statusDescriptionLower)
       );
     }
 
@@ -255,8 +333,6 @@ const AdminLoads = () => {
     return () => unsubscribe();
   }, []);
 
-  const ColHead = ColHeader(colorMode);
-  const DelHead = DelHeader(colorMode);
   const headers = [
     {
       label: "Collection",
@@ -283,11 +359,8 @@ const AdminLoads = () => {
 
   function getWeekNumber(dateStr) {
     const [day, month, year] = dateStr.split("/");
-    const date = new Date(`${year}-${month}-${day}`);
-    const startOfYear = new Date(date.getFullYear(), 0, 1);
-    const difference = date - startOfYear;
-    const dayLength = 1000 * 60 * 60 * 24;
-    return Math.floor(difference / dayLength / 7) + 1;
+    const date = new Date(year, month - 1, day);
+    return getWeek(date, { weekStartsOn: 1 });
   }
 
   function filterLoadsByWeek(loads, weekNumber) {
@@ -298,39 +371,17 @@ const AdminLoads = () => {
 
   useEffect(() => {
     const now = new Date();
-    const currentYear = getYear(now);
-    const startDate = startOfWeek(new Date(`${currentYear}-01-01`));
-    const endDate = endOfWeek(new Date(`${currentYear}-12-31`));
+    const weekNumber = getWeek(now, { weekStartsOn: 1 });
+    const totalWeeks = getWeeksInYear(getYear(now));
 
-    const numberOfWeeks = Math.ceil(
-      (endDate - startDate) / (7 * 24 * 60 * 60 * 1000)
-    );
-    setCurrentWeek({ start: startDate, end: endDate });
-    setTotalNumberOfPages(numberOfWeeks);
+    const safeWeekNumber = weekNumber <= totalWeeks ? weekNumber : totalWeeks;
+
+    setCurrentPage(safeWeekNumber);
   }, []);
-
-  // useEffect(() => {
-  //   const loadsWithinCurrentWeek = filteredLoads?.filter((load) => {
-  //     const loadDate = parseDate(load?.formData?.collection_date);
-  //     return isWithinInterval(loadDate, currentWeek);
-  //   });
-
-  //   const startIndex = (currentPage - 1) * itemsPerPage;
-  //   const endIndex = startIndex + itemsPerPage;
-  //   const newDisplayedLoads = loadsWithinCurrentWeek?.slice(
-  //     startIndex,
-  //     endIndex
-  //   );
-
-  //   setDisplayedLoads(newDisplayedLoads);
-  // }, [currentPage, currentWeek, itemsPerPage, filteredLoads]);
 
   useEffect(() => {
     const now = new Date();
-    const startDate = new Date("2023-01-01");
-    const currentWeekNumber = Math.ceil(
-      (now - startDate) / (7 * 24 * 60 * 60 * 1000)
-    );
+    const currentWeekNumber = getWeek(now, { weekStartsOn: 1 });
 
     setCurrentPage(currentWeekNumber);
   }, [filteredLoads, itemsPerPage]);
@@ -393,14 +444,31 @@ const AdminLoads = () => {
               </Flex>
 
               <Flex alignItems={"center"} mx="auto" mt={6}>
-                <Text mr={2}>Go to:</Text>
+                <Text mr={2} whiteSpace={"nowrap"}>
+                  Week:
+                </Text>
                 <Input
                   value={inputValue}
                   onChange={handleInputChange}
                   size="sm"
                   width="50px"
                   textAlign="center"
+                  mr={8}
                 />
+                {generateYearOptions(2024).length === 1 &&
+                generateYearOptions(2024)[0] === 2024 ? null : (
+                  <>
+                    <Text mr={2} whiteSpace={"nowrap"}>
+                      Year:
+                    </Text>
+                    <Box>
+                      <YearSelector
+                        selectedYear={selectedYear}
+                        setSelectedYear={setSelectedYear}
+                      />
+                    </Box>
+                  </>
+                )}
               </Flex>
             </Flex>
           </HStack>
@@ -426,32 +494,6 @@ const AdminLoads = () => {
         <>
           <Table mt={8} mb={12}>
             <Thead>
-              <Tr>
-                {ColHead.map((column, index) => (
-                  <Th
-                    key={index}
-                    className="table-responsive-sizes-text"
-                    bg={column.bg}
-                    fontSize="md"
-                    fontWeight="500"
-                    colSpan={9}
-                  >
-                    {column.label}
-                  </Th>
-                ))}
-                {DelHead.map((column, index) => (
-                  <Th
-                    key={index}
-                    className="table-responsive-sizes-text"
-                    bg={column.bg}
-                    fontSize="md"
-                    fontWeight="500"
-                    colSpan={8}
-                  >
-                    {column.label}
-                  </Th>
-                ))}
-              </Tr>
               <Tr>
                 {columnHeaders.map((column, index) => (
                   <Th

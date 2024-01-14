@@ -16,6 +16,7 @@ import {
   Tooltip,
   Checkbox,
   Input,
+  Select,
 } from "@chakra-ui/react";
 import {
   startOfWeek,
@@ -29,11 +30,7 @@ import "./table.css";
 
 import { db } from "../firebase-config/firebase-config";
 import { collection, doc, getDocs, onSnapshot } from "@firebase/firestore";
-import {
-  getColumnHeaders,
-  ColHeader,
-  DelHeader,
-} from "../utilities/table-headers";
+import { getColumnHeaders } from "../utilities/table-headers";
 import LoadDataRow from "./table/loads-data-row";
 import FilterComponent from "../admin/filter-loads";
 import { CSVLink } from "react-csv";
@@ -48,7 +45,18 @@ const LoadTable = () => {
   const [filteredLoads, setFilteredLoads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNoLoadsFound, setShowNoLoadsFound] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const getWeeksInYear = (year) => {
+    const isLeapYear = new Date(year, 1, 29).getMonth() === 1;
+    return isLeapYear ? 53 : 52;
+  };
+  const [currentPage, setCurrentPage] = useState(() => {
+    const now = new Date();
+    const currentYear = getYear(now);
+    const weekNumber = getWeek(now, { weekStartsOn: 1 });
+    const totalWeeks = getWeeksInYear(currentYear);
+
+    return weekNumber > totalWeeks ? totalWeeks : weekNumber;
+  });
   const [displayedLoads, setDisplayedLoads] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowsForExport, setSelectedRowsForExport] = useState([]);
@@ -56,13 +64,17 @@ const LoadTable = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [currentWeek, setCurrentWeek] = useState(null);
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const now = new Date();
+    const start = startOfWeek(now, { weekStartsOn: 1 });
+    const end = endOfWeek(now, { weekStartsOn: 1 });
+    return { start, end };
+  });
   const [totalNumberOfPages, setTotalNumberOfPages] = useState("52");
   const [inputValue, setInputValue] = useState(currentPage.toString());
+  const [selectedYear, setSelectedYear] = useState(getYear(new Date()));
   const loadsCollectionRef = collection(db, "loads");
   const { colorMode } = useColorMode();
-  const ColHead = ColHeader(colorMode);
-  const DelHead = DelHeader(colorMode);
   const headers = [
     {
       label: "Collection",
@@ -76,39 +88,63 @@ const LoadTable = () => {
     },
   ];
 
-  function getWeekNumber(dateStr) {
-    const [day, month, year] = dateStr.split("/");
-    const date = new Date(`${year}-${month}-${day}`);
-    const startOfYear = new Date(date.getFullYear(), 0, 1);
-    const difference = date - startOfYear;
-    const dayLength = 1000 * 60 * 60 * 24;
-    return Math.floor(difference / dayLength / 7) + 1;
-  }
+  const generateYearOptions = (startYear) => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = startYear; year <= currentYear; year++) {
+      years.push(year);
+    }
+    return years;
+  };
+  const YearSelector = ({ selectedYear, setSelectedYear }) => {
+    const yearOptions = generateYearOptions(2024);
+
+    if (yearOptions.length === 1 && yearOptions[0] === 2024) {
+      return null;
+    }
+
+    return (
+      <Select
+        value={selectedYear}
+        onChange={(e) => setSelectedYear(Number(e.target.value))}
+      >
+        {yearOptions.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </Select>
+    );
+  };
+
+  useEffect(() => {
+    const year = selectedYear;
+    const totalWeeks = getWeeksInYear(year);
+    setTotalNumberOfPages(totalWeeks);
+
+    const currentYear = getYear(new Date());
+    if (currentYear === year) {
+      const currentWeekNumber = getWeek(new Date(), { weekStartsOn: 1 });
+      setCurrentPage(currentWeekNumber);
+    } else {
+      setCurrentPage(1);
+    }
+  }, [selectedYear]);
 
   function filterLoadsByWeek(loads, weekNumber) {
     return loads.filter((load) => {
-      return getWeekNumber(load.formData.collection_date) === weekNumber;
+      const loadDate = parseDate(load.formData.collection_date);
+      return getWeek(loadDate, { weekStartsOn: 1 }) === weekNumber;
     });
   }
 
   useEffect(() => {
-    const now = new Date();
-    const currentYear = getYear(now);
-    const startDate = startOfWeek(new Date(`${currentYear}-01-01`));
-    const endDate = endOfWeek(new Date(`${currentYear}-12-31`));
-
-    const numberOfWeeks = Math.ceil(
-      (endDate - startDate) / (7 * 24 * 60 * 60 * 1000)
-    );
-    setCurrentWeek({ start: startDate, end: endDate });
-    setTotalNumberOfPages(numberOfWeeks);
-  }, []);
-
-  useEffect(() => {
-    const loadsWithinCurrentWeek = filteredLoads.filter((load) => {
-      const loadDate = parseDate(load.formData.collection_date);
-      return isWithinInterval(loadDate, currentWeek);
-    });
+    const loadsWithinCurrentWeek = currentPage
+      ? filteredLoads.filter((load) => {
+          const loadDate = parseDate(load.formData.collection_date);
+          return isWithinInterval(loadDate, currentWeek);
+        })
+      : [];
 
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -118,17 +154,13 @@ const LoadTable = () => {
     );
 
     setDisplayedLoads(newDisplayedLoads);
-  }, [currentPage, currentWeek, itemsPerPage, filteredLoads]);
+  }, [currentPage, currentPage, itemsPerPage, filteredLoads]);
 
   useEffect(() => {
     const now = new Date();
-    const startDate = new Date("2023-01-01");
-    const currentWeekNumber = Math.ceil(
-      (now - startDate) / (7 * 24 * 60 * 60 * 1000)
-    );
-
+    const currentWeekNumber = getWeek(now, { weekStartsOn: 1 });
     setCurrentPage(currentWeekNumber);
-  }, [filteredLoads, itemsPerPage]);
+  }, []);
 
   const toggleRowSelection = (loadId) => {
     let updatedSelectedRows;
@@ -345,11 +377,11 @@ const LoadTable = () => {
     }
 
     if (statusDescription) {
-      const statusDescriptionLower = statusDescription.toLowerCase();
+      const statusDescriptionLower = statusDescription?.toLowerCase();
       filtered = filtered.filter((load) =>
-        load.formData.status_description
-          .toLowerCase()
-          .includes(statusDescriptionLower)
+        load?.formData?.status_description
+          ?.toLowerCase()
+          ?.includes(statusDescriptionLower)
       );
     }
 
@@ -421,7 +453,7 @@ const LoadTable = () => {
         <Center py={6}>
           <HStack spacing={4}>
             <Flex flexDir={"column"} alignContent={"center"}>
-              <Flex alignItems={"center"}>
+              <Flex alignItems={"center"} mx="auto">
                 <Button
                   onClick={() => {
                     if (currentPage > 1) {
@@ -450,14 +482,31 @@ const LoadTable = () => {
               </Flex>
 
               <Flex alignItems={"center"} mx="auto" mt={6}>
-                <Text mr={2}>Go to:</Text>
+                <Text mr={2} whiteSpace={"nowrap"}>
+                  Week:
+                </Text>
                 <Input
                   value={inputValue}
                   onChange={handleInputChange}
                   size="sm"
                   width="50px"
                   textAlign="center"
+                  mr={8}
                 />
+                {generateYearOptions(2024).length === 1 &&
+                generateYearOptions(2024)[0] === 2024 ? null : (
+                  <>
+                    <Text mr={2} whiteSpace={"nowrap"}>
+                      Year:
+                    </Text>
+                    <Box>
+                      <YearSelector
+                        selectedYear={selectedYear}
+                        setSelectedYear={setSelectedYear}
+                      />
+                    </Box>
+                  </>
+                )}
               </Flex>
             </Flex>
           </HStack>
@@ -609,32 +658,6 @@ const LoadTable = () => {
         <>
           <Table mt={8} mb={12}>
             <Thead>
-              <Tr>
-                {ColHead.map((column, index) => (
-                  <Th
-                    key={index}
-                    className="table-responsive-sizes-text"
-                    bg={column.bg}
-                    fontSize="md"
-                    fontWeight="500"
-                    colSpan={9}
-                  >
-                    {column.label}
-                  </Th>
-                ))}
-                {DelHead.map((column, index) => (
-                  <Th
-                    key={index}
-                    className="table-responsive-sizes-text"
-                    bg={column.bg}
-                    fontSize="md"
-                    fontWeight="500"
-                    colSpan={8}
-                  >
-                    {column.label}
-                  </Th>
-                ))}
-              </Tr>
               <Tr>
                 {columnHeaders.map((column, index) => (
                   <Th
